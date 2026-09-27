@@ -54,6 +54,11 @@ export interface BudgetStatus {
   totalBudget: number;
   totalSpent: number;
   remainingBudget: number;
+  rawRemainingBudget: number; // can be negative if over budget
+  isOverBudget: boolean; // totalSpent > totalBudget
+  overBudgetAmount: number; // amount exceeded beyond totalBudget
+  isTodayOverBudget: boolean; // todaySpent > dailyAllowance
+  todayOverAmount: number; // amount today exceeded dailyAllowance
   daysTotal: number;
   daysPassed: number;
   daysRemaining: number;
@@ -61,7 +66,7 @@ export interface BudgetStatus {
   todaySpent: number;
   todayRemaining: number;
   burnRatePercentage: number;
-  isCritical: boolean; // เงินใกล้หมด (< 15% หรือ เหลือน้อยกว่า 80บ./วัน)
+  isCritical: boolean; // เงินใกล้หมด (< 15% หรือ เหลือน้อยกว่า 85บ./วัน หรือเกินงบ)
   isWarning: boolean; // เงินเริ่มตึง (15% - 30%)
   healthScore: 'healthy' | 'warning' | 'critical';
 }

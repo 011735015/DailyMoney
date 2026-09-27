@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Wallet,
   Calendar,
+  AlertOctagon,
 } from 'lucide-react';
 import { BudgetConfig, BudgetStatus, Expense, ExpenseCategory } from '../types';
 import { QuickBudgetCalculator } from './QuickBudgetCalculator';
@@ -21,6 +22,7 @@ interface HomeOverviewProps {
   onQuickAddExpense: (amount: number, category: ExpenseCategory, note: string) => void;
   onOpenFullExpenseModal: () => void;
   onOpenEmergencyModal: () => void;
+  onOpenOverBudgetModal?: () => void;
   onOpenMenuTab: () => void;
   onOpenExpensesTab: () => void;
   onDeleteExpense: (id: string) => void;
@@ -44,6 +46,7 @@ export const HomeOverview: React.FC<HomeOverviewProps> = ({
   onQuickAddExpense,
   onOpenFullExpenseModal,
   onOpenEmergencyModal,
+  onOpenOverBudgetModal,
   onOpenExpensesTab,
   onDeleteExpense,
   onNextDay,
@@ -90,34 +93,70 @@ export const HomeOverview: React.FC<HomeOverviewProps> = ({
       {/* 3. Hero Status Display (Remaining Money & Days in this round) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Total Remaining Money */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col justify-between shadow-xs">
+        <div
+          className={`rounded-2xl border p-6 flex flex-col justify-between shadow-xs transition-all ${
+            status.isOverBudget
+              ? 'bg-rose-50/70 border-rose-300 ring-1 ring-rose-300'
+              : 'bg-white border-slate-200'
+          }`}
+        >
           <div>
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                เงินคงเหลือในรอบนี้
+              <span className={`text-xs font-bold uppercase tracking-wider ${
+                status.isOverBudget ? 'text-rose-700' : 'text-slate-500'
+              }`}>
+                {status.isOverBudget ? '⚠️ เงินติดลบ (ใช้เกินงบ)' : 'เงินคงเหลือในรอบนี้'}
               </span>
-              <Wallet className="w-4 h-4 text-emerald-600" />
+              {status.isOverBudget ? (
+                <button
+                  onClick={onOpenOverBudgetModal}
+                  className="flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-200/80 px-2 py-0.5 rounded-full cursor-pointer hover:bg-rose-300"
+                >
+                  <AlertOctagon className="w-3 h-3 text-rose-700 animate-pulse" />
+                  <span>ดูรายละเอียด</span>
+                </button>
+              ) : (
+                <Wallet className="w-4 h-4 text-emerald-600" />
+              )}
             </div>
 
             <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-3xl sm:text-4xl font-extrabold tracking-tight font-mono tabular-nums text-slate-900">
-                ฿{status.remainingBudget.toLocaleString()}
-              </span>
-              <span className="text-xs text-slate-400">
+              {status.isOverBudget ? (
+                <span className="text-3xl sm:text-4xl font-black tracking-tight font-mono tabular-nums text-rose-600">
+                  -฿{status.overBudgetAmount.toLocaleString()}
+                </span>
+              ) : (
+                <span className="text-3xl sm:text-4xl font-extrabold tracking-tight font-mono tabular-nums text-slate-900">
+                  ฿{status.remainingBudget.toLocaleString()}
+                </span>
+              )}
+              <span className={`text-xs ${status.isOverBudget ? 'text-rose-600 font-semibold' : 'text-slate-400'}`}>
                 / ฿{status.totalBudget.toLocaleString()}
               </span>
             </div>
+
+            {status.isOverBudget && (
+              <p className="text-[11px] text-rose-700 mt-1">
+                ใช้จ่ายเกินงบไปแล้ว ฿{status.overBudgetAmount.toLocaleString()} บาท จากยอดตั้งต้น
+              </p>
+            )}
           </div>
 
           <div className="mt-4">
             <div className="flex justify-between text-xs text-slate-500 mb-1">
-              <span>ใช้ไปแล้ว {status.burnRatePercentage}%</span>
-              <span className="font-mono">฿{status.totalSpent.toLocaleString()}</span>
+              <span className={status.isOverBudget ? 'text-rose-700 font-bold' : ''}>
+                ใช้ไปแล้ว {status.burnRatePercentage}%
+              </span>
+              <span className={`font-mono ${status.isOverBudget ? 'text-rose-700 font-bold' : ''}`}>
+                ฿{status.totalSpent.toLocaleString()}
+              </span>
             </div>
             <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-500 ${
-                  status.burnRatePercentage > 85
+                  status.isOverBudget
+                    ? 'bg-rose-600'
+                    : status.burnRatePercentage > 85
                     ? 'bg-rose-500'
                     : status.burnRatePercentage > 65
                     ? 'bg-amber-500'

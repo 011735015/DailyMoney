@@ -5,14 +5,52 @@ import { BudgetStatus } from '../types';
 interface EmergencyAlertBannerProps {
   status: BudgetStatus;
   onOpenEmergency: () => void;
+  onOpenOverBudget?: () => void;
 }
 
 export const EmergencyAlertBanner: React.FC<EmergencyAlertBannerProps> = ({
   status,
   onOpenEmergency,
+  onOpenOverBudget,
 }) => {
-  if (!status.isCritical && !status.isWarning) {
+  if (!status.isCritical && !status.isWarning && !status.isOverBudget) {
     return null;
+  }
+
+  // Highest priority: Over Budget
+  if (status.isOverBudget) {
+    return (
+      <div className="relative overflow-hidden rounded-xl border-2 border-rose-500 bg-rose-50 px-4 py-3.5 mb-6 text-rose-950 shadow-md animate-in fade-in duration-200">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 animate-pulse shadow-sm">
+              <ShieldAlert className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-bold text-sm text-rose-900">
+                  🚨 แจ้งเตือนด่วน: คุณใช้เงินเกินงบที่มีอยู่แล้ว!
+                </span>
+                <span className="text-xs px-2 py-0.5 rounded-full font-mono font-bold bg-rose-600 text-white">
+                  ติดลบ -฿{status.overBudgetAmount.toLocaleString()}
+                </span>
+              </div>
+              <p className="text-xs text-rose-800 mt-0.5">
+                ใช้จ่ายรวม ฿{status.totalSpent.toLocaleString()} ทะลุงบ ฿{status.totalBudget.toLocaleString()} แล้ว ({status.burnRatePercentage}%) กรุณาระงับการใช้จ่ายหรือปรับงบด่วน
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={onOpenOverBudget || onOpenEmergency}
+            className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 active:scale-95 shadow-sm transition-all cursor-pointer ring-2 ring-rose-400 ring-offset-1"
+          >
+            <span>ดูวิธีแก้ไขด่วน</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+    );
   }
 
   const isSevere = status.isCritical;

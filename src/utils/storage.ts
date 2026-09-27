@@ -71,7 +71,10 @@ export function calculateBudgetStatus(config: BudgetConfig, expenses: Expense[])
   
   // Calculate total spent across all recorded expenses
   const totalSpent = expenses.reduce((sum, item) => sum + Number(item.amount || 0), 0);
-  const remainingBudget = Math.max(0, totalBudget - totalSpent);
+  const rawRemainingBudget = totalBudget - totalSpent;
+  const isOverBudget = totalSpent > totalBudget;
+  const overBudgetAmount = isOverBudget ? totalSpent - totalBudget : 0;
+  const remainingBudget = Math.max(0, rawRemainingBudget);
 
   // Pure survival day calculation:
   // Current day is within 1 .. totalDays
@@ -88,15 +91,19 @@ export function calculateBudgetStatus(config: BudgetConfig, expenses: Expense[])
   const todayExpenses = expenses.filter((e) => e.date === todayStr);
   const todaySpent = todayExpenses.reduce((sum, item) => sum + Number(item.amount || 0), 0);
   const todayRemaining = Math.round(dailyAllowance - todaySpent);
+  const isTodayOverBudget = dailyAllowance > 0 ? todaySpent > dailyAllowance : todaySpent > 0;
+  const todayOverAmount = Math.max(0, todaySpent - dailyAllowance);
 
   // Burn rate: percentage of budget spent
-  const burnRatePercentage = totalBudget > 0 ? Math.min(100, Math.round((totalSpent / totalBudget) * 100)) : 0;
+  const burnRatePercentage = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : (totalSpent > 0 ? 100 : 0);
 
   // Critical condition for survival:
-  // 1. Remaining budget is <= 15% of total budget OR
-  // 2. Daily allowance is less than 85 Baht (survival threshold in Thailand) OR
-  // 3. Remaining budget is less than 250 Baht and daysRemaining >= 2
+  // 1. Over budget (spent more than available budget) OR
+  // 2. Remaining budget is <= 15% of total budget OR
+  // 3. Daily allowance is less than 85 Baht (survival threshold in Thailand) OR
+  // 4. Remaining budget is less than 250 Baht and daysRemaining >= 2
   const isCritical =
+    isOverBudget ||
     remainingBudget <= 0 ||
     (totalBudget > 0 && remainingBudget / totalBudget <= 0.15) ||
     dailyAllowance <= 85 ||
@@ -112,6 +119,11 @@ export function calculateBudgetStatus(config: BudgetConfig, expenses: Expense[])
     totalBudget,
     totalSpent,
     remainingBudget,
+    rawRemainingBudget,
+    isOverBudget,
+    overBudgetAmount,
+    isTodayOverBudget,
+    todayOverAmount,
     daysTotal: totalDays,
     daysPassed,
     daysRemaining,

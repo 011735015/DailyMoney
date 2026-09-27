@@ -142,17 +142,21 @@ export const InstantPlanResult: React.FC<InstantPlanResultProps> = ({
           </div>
         </div>
 
-        {/* Critical Alert Red Button (If Low Budget) */}
+        {/* Critical Alert Red Button (If Low Budget or Over Budget) */}
         {isCritical && (
           <div className="mt-4 p-4 bg-rose-600 text-white rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md animate-pulse">
             <div className="flex items-center gap-3">
               <ShieldAlert className="w-6 h-6 shrink-0" />
               <div>
                 <h4 className="font-bold text-sm">
-                  🚨 แจ้งเตือน: เงินต่อวันอยู่ในระดับต่ำมาก (เหลือน้อยวิกฤต)
+                  {status.isOverBudget
+                    ? `🚨 ฉุกเฉิน: ใช้เงินเกินงบแล้ว (ติดลบ -฿${status.overBudgetAmount.toLocaleString()})`
+                    : '🚨 แจ้งเตือน: เงินต่อวันอยู่ในระดับต่ำมาก (เหลือน้อยวิกฤต)'}
                 </h4>
                 <p className="text-xs text-rose-100 mt-0.5">
-                  ต้องใช้เงินอย่างระมัดระวังสูงสุดเพื่อให้อยู่รอดครบ {config.totalDays} วัน
+                  {status.isOverBudget
+                    ? `ยอดใช้จ่ายทะลุงบตั้งต้นไปแล้ว ฿${status.overBudgetAmount.toLocaleString()} บาท กรุณาหยุดใช้จ่ายทันทีหรือปรับเพิ่มงบ`
+                    : `ต้องใช้เงินอย่างระมัดระวังสูงสุดเพื่อให้อยู่รอดครบ ${config.totalDays} วัน`}
                 </p>
               </div>
             </div>

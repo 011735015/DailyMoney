@@ -19,6 +19,8 @@ import { ExpenseList } from './components/ExpenseList';
 import { AnalyticsCharts } from './components/AnalyticsCharts';
 import { ExpenseFormModal } from './components/ExpenseFormModal';
 import { BudgetSettingsModal } from './components/BudgetSettingsModal';
+import { OverBudgetModal } from './components/OverBudgetModal';
+import { EmergencyAlertBanner } from './components/EmergencyAlertBanner';
 import { ShieldAlert } from 'lucide-react';
 
 export default function App() {
@@ -34,6 +36,8 @@ export default function App() {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isEmergencyModalOpen, setIsEmergencyModalOpen] = useState(false);
   const [isStartNewPlanModalOpen, setIsStartNewPlanModalOpen] = useState(false);
+  const [isOverBudgetModalOpen, setIsOverBudgetModalOpen] = useState(false);
+  const [lastExpenseRecorded, setLastExpenseRecorded] = useState<Expense | undefined>(undefined);
 
   // Pre-fill state for meal logging
   const [mealPreFill, setMealPreFill] = useState<{
@@ -71,7 +75,24 @@ export default function App() {
       id: `exp-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       createdAt: Date.now(),
     };
-    setExpenses((prev) => [newExpense, ...prev]);
+    const updatedExpenses = [newExpense, ...expenses];
+    setExpenses(updatedExpenses);
+    setLastExpenseRecorded(newExpense);
+
+    // Calculate new status immediately to trigger over-budget alarm if exceeded
+    const nextStatus = calculateBudgetStatus(config, updatedExpenses);
+    if (nextStatus.isOverBudget) {
+      setIsOverBudgetModalOpen(true);
+      showToast(`🚨 เตือนด่วน: คุณใช้เงินเกินงบแล้ว! (ติดลบ ฿${nextStatus.overBudgetAmount.toLocaleString()})`);
+    }
+  };
+
+  const handleUndoLastExpense = () => {
+    if (lastExpenseRecorded) {
+      handleDeleteExpense(lastExpenseRecorded.id);
+      setLastExpenseRecorded(undefined);
+      setIsOverBudgetModalOpen(false);
+    }
   };
 
   const handleDeleteExpense = (id: string) => {
@@ -165,7 +186,9 @@ export default function App() {
       createdAt: Date.now(),
       mealRef: mealRef,
     };
-    setExpenses((prev) => [newExpense, ...prev]);
+    const updatedExpenses = [newExpense, ...expenses];
+    setExpenses(updatedExpenses);
+    setLastExpenseRecorded(newExpense);
 
     // Lock this meal for today
     setConfig((prev) => ({
@@ -179,7 +202,13 @@ export default function App() {
       },
     }));
 
-    showToast(`✓ บันทึก ${name} (-฿${price}) เรียบร้อยแล้ว`);
+    const nextStatus = calculateBudgetStatus(config, updatedExpenses);
+    if (nextStatus.isOverBudget) {
+      setIsOverBudgetModalOpen(true);
+      showToast(`🚨 เตือนด่วน: คุณใช้เงินเกินงบแล้ว! (ติดลบ ฿${nextStatus.overBudgetAmount.toLocaleString()})`);
+    } else {
+      showToast(`✓ บันทึก ${name} (-฿${price}) เรียบร้อยแล้ว`);
+    }
   };
 
   // Refund money and unlock meal when clicking the "รี" (รีคืนเงิน) button
@@ -352,6 +381,15 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-6 pb-8">
+        {/* Realtime Alert Banner for Over-Budget or Low Budget */}
+        {!config.isCompleted && (
+          <EmergencyAlertBanner
+            status={status}
+            onOpenEmergency={() => setIsEmergencyModalOpen(true)}
+            onOpenOverBudget={() => setIsOverBudgetModalOpen(true)}
+          />
+        )}
+
         {/* Tab 1: Overview or Completed View */}
         {activeTab === 'overview' && (
           <>
@@ -378,6 +416,7 @@ export default function App() {
                   setIsExpenseModalOpen(true);
                 }}
                 onOpenEmergencyModal={() => setIsEmergencyModalOpen(true)}
+                onOpenOverBudgetModal={() => setIsOverBudgetModalOpen(true)}
                 onOpenMenuTab={() => setActiveTab('menu')}
                 onOpenExpensesTab={() => setActiveTab('expenses')}
                 onDeleteExpense={handleDeleteExpense}
@@ -421,15 +460,25 @@ export default function App() {
         )}
       </main>
 
-      {/* Floating Emergency Button when near exhaustion */}
-      {status.isCritical && !config.isCompleted && (
+      {/* Floating Emergency / Over-Budget Button */}
+      {(status.isCritical || status.isOverBudget) && !config.isCompleted && (
         <div className="fixed bottom-16 sm:bottom-6 right-4 sm:right-6 z-40">
           <button
-            onClick={() => setIsEmergencyModalOpen(true)}
+            onClick={() => {
+              if (status.isOverBudget) {
+                setIsOverBudgetModalOpen(true);
+              } else {
+                setIsEmergencyModalOpen(true);
+              }
+            }}
             className="flex items-center gap-2 px-4 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-full shadow-lg shadow-rose-600/30 font-bold text-xs sm:text-sm animate-pulse ring-4 ring-rose-300 ring-offset-2 transition-all active:scale-95 cursor-pointer"
           >
             <ShieldAlert className="w-5 h-5 text-white" />
-            <span>คำแนะนำประหยัดฉุกเฉิน (เงินใกล้หมด!)</span>
+            <span>
+              {status.isOverBudget
+                ? `🚨 เงินติดลบ -฿${status.overBudgetAmount.toLocaleString()} (กดดูวิธีแก้)`
+                : 'คำแนะนำประหยัดฉุกเฉิน (เงินใกล้หมด!)'}
+            </span>
           </button>
         </div>
       )}
@@ -449,6 +498,17 @@ export default function App() {
         }}
         onSaveExpense={handleSaveExpense}
         initialValues={mealPreFill}
+        status={status}
+      />
+
+      <OverBudgetModal
+        isOpen={isOverBudgetModalOpen}
+        onClose={() => setIsOverBudgetModalOpen(false)}
+        status={status}
+        lastExpense={lastExpenseRecorded}
+        onUndoLastExpense={handleUndoLastExpense}
+        onOpenSettings={() => setIsSettingsModalOpen(true)}
+        onOpenNewPlan={() => setIsStartNewPlanModalOpen(true)}
       />
 
       <BudgetSettingsModal

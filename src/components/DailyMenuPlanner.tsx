@@ -7,6 +7,7 @@ import {
   Info,
   Layers,
   Check,
+  Search,
 } from 'lucide-react';
 import { MealRecommendation, BudgetStatus } from '../types';
 import { THAI_MEAL_DATABASE, LIVING_COST_GUIDE } from '../data/thaiMeals';
@@ -30,6 +31,7 @@ export const DailyMenuPlanner: React.FC<DailyMenuPlannerProps> = ({
 
   const [selectedTier, setSelectedTier] = useState<'survival' | 'standard' | 'comfort'>(defaultTier);
   const [selectedMealTime, setSelectedMealTime] = useState<'all' | 'เช้า' | 'กลางวัน' | 'เย็น'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [shuffleKey, setShuffleKey] = useState(0);
   const [addedMealId, setAddedMealId] = useState<string | null>(null);
 
@@ -37,7 +39,11 @@ export const DailyMenuPlanner: React.FC<DailyMenuPlannerProps> = ({
   const filteredMeals = THAI_MEAL_DATABASE.filter((meal) => {
     const matchTier = meal.tier === selectedTier;
     const matchTime = selectedMealTime === 'all' || meal.mealTime === selectedMealTime;
-    return matchTier && matchTime;
+    const matchSearch =
+      !searchQuery.trim() ||
+      meal.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      meal.description.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchTier && matchTime && matchSearch;
   });
 
   const handleQuickAdd = (meal: MealRecommendation) => {
@@ -115,9 +121,9 @@ export const DailyMenuPlanner: React.FC<DailyMenuPlannerProps> = ({
           </div>
         </div>
 
-        {/* Meal Time Filter & Stats bar */}
-        <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+        {/* Meal Time Filter, Search & Stats bar */}
+        <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs text-slate-400 font-medium">มื้ออาหาร:</span>
             <div className="flex items-center gap-1">
               {(['all', 'เช้า', 'กลางวัน', 'เย็น'] as const).map((time) => (
@@ -136,9 +142,35 @@ export const DailyMenuPlanner: React.FC<DailyMenuPlannerProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-3 text-xs text-slate-500">
+          {/* Search Box */}
+          <div className="flex items-center gap-2 flex-1 max-w-xs">
+            <div className="relative w-full">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="ค้นหาชื่ออาหาร / วัตถุดิบ..."
+                className="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 focus:border-emerald-600 focus:bg-white rounded-lg text-xs outline-none transition-colors"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 text-xs text-slate-500 shrink-0">
+            <span className="bg-emerald-50 text-emerald-800 font-medium px-2 py-0.5 rounded text-[11px]">
+              พบ {filteredMeals.length} เมนู
+            </span>
+            <span>·</span>
             <span>
-              รวม 3 มื้อระดับนี้:{' '}
+              รวม 3 มื้อ:{' '}
               <strong className="text-slate-900 font-mono font-bold">
                 ~฿{estimatedDailyMealCost}
               </strong>

@@ -1,6 +1,17 @@
 import React, { useState } from 'react';
-import { X, Check, Utensils, Bus, ShoppingBag, Sparkles, Tag, FileText, Calendar } from 'lucide-react';
-import { Expense, ExpenseCategory } from '../types';
+import {
+  X,
+  Check,
+  Utensils,
+  Bus,
+  ShoppingBag,
+  Sparkles,
+  Tag,
+  FileText,
+  AlertOctagon,
+  AlertCircle,
+} from 'lucide-react';
+import { Expense, ExpenseCategory, BudgetStatus } from '../types';
 
 interface ExpenseFormModalProps {
   isOpen: boolean;
@@ -11,6 +22,7 @@ interface ExpenseFormModalProps {
     amount?: number;
     category?: ExpenseCategory;
   };
+  status?: BudgetStatus;
 }
 
 const CATEGORIES: { id: ExpenseCategory; label: string; icon: React.ReactNode }[] = [
@@ -35,6 +47,7 @@ export const ExpenseFormModal: React.FC<ExpenseFormModalProps> = ({
   onClose,
   onSaveExpense,
   initialValues,
+  status,
 }) => {
   const [amount, setAmount] = useState<string>(
     initialValues?.amount ? String(initialValues.amount) : ''
@@ -52,6 +65,24 @@ export const ExpenseFormModal: React.FC<ExpenseFormModalProps> = ({
   const [error, setError] = useState<string>('');
 
   if (!isOpen) return null;
+
+  const numAmount = parseFloat(amount) || 0;
+  const willExceedBudget =
+    status && numAmount > 0
+      ? status.totalSpent + numAmount > status.totalBudget
+      : false;
+  const projectedDeficit =
+    status && willExceedBudget
+      ? status.totalSpent + numAmount - status.totalBudget
+      : 0;
+  const willExceedToday =
+    status && status.dailyAllowance > 0 && numAmount > 0
+      ? status.todaySpent + numAmount > status.dailyAllowance
+      : false;
+  const projectedTodayExcess =
+    status && willExceedToday
+      ? status.todaySpent + numAmount - status.dailyAllowance
+      : 0;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,10 +172,48 @@ export const ExpenseFormModal: React.FC<ExpenseFormModalProps> = ({
                   setAmount(e.target.value);
                   setError('');
                 }}
-                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-emerald-600 focus:bg-white rounded-xl text-2xl font-bold font-mono text-slate-900 outline-none transition-all placeholder:text-slate-300"
+                className={`w-full pl-10 pr-4 py-3 bg-slate-50 border rounded-xl text-2xl font-bold font-mono text-slate-900 outline-none transition-all placeholder:text-slate-300 ${
+                  willExceedBudget
+                    ? 'border-rose-400 focus:border-rose-600 focus:bg-rose-50/30'
+                    : 'border-slate-200 focus:border-emerald-600 focus:bg-white'
+                }`}
               />
             </div>
             {error && <p className="text-xs text-rose-600 mt-1">{error}</p>}
+
+            {/* Over-Budget Realtime Warning Callout */}
+            {numAmount > 0 && willExceedBudget && (
+              <div className="mt-2.5 p-3 bg-rose-50 border border-rose-300 rounded-xl text-xs text-rose-950 flex items-start gap-2.5 animate-in fade-in duration-150">
+                <AlertOctagon className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                <div>
+                  <div className="font-bold text-rose-900">
+                    ⚠️ คำเตือน: ยอดนี้จะทำให้คุณใช้เงินเกินงบ!
+                  </div>
+                  <p className="mt-0.5 text-rose-800 text-[11px] leading-relaxed">
+                    ยอดเงินรวมจะทะลุงบตั้งต้นไป{' '}
+                    <span className="font-mono font-bold text-rose-700 underline">
+                      ฿{projectedDeficit.toLocaleString()}
+                    </span>{' '}
+                    (เงินจะติดลบ -฿{projectedDeficit.toLocaleString()})
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Exceeding Today Allowance Warning Callout */}
+            {!willExceedBudget && numAmount > 0 && willExceedToday && (
+              <div className="mt-2.5 p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-950 flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <div>
+                  <div className="font-semibold text-amber-900">
+                    แจ้งเตือน: เกินโควตารายวันที่เหลือของวันนี้
+                  </div>
+                  <p className="text-[11px] text-amber-800">
+                    จะเกินโควตาวันนี้ไป ฿{projectedTodayExcess.toLocaleString()} (โควตาวันนี้เหลือ ฿{Math.max(0, status?.todayRemaining || 0).toLocaleString()})
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Category selection */}
