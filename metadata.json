@@ -1,0 +1,8 @@
+{
+  "name": "Remix KrapowBudget - แพลนเนอร์คำนวณเงินรายวันและบันทึกค่าใช้จ่าย",
+  "description": "คำนวณเงินที่ใช้ได้ต่อวัน แนะนำเมนูอาหารและค่าครองชีพ บันทึกค่าใช้จ่ายแบบเรียลไทม์ พร้อมกราฟสรุปและระบบเตือนเงินใกล้หมด",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
