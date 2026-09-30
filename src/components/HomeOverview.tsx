@@ -223,11 +223,11 @@ export const HomeOverview: React.FC<HomeOverviewProps> = ({
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.96 }}
               onClick={onNextDay}
-              title="ขยับไปวันถัดไป เมนูอาหารจะเปลี่ยนเป็นเมนูใหม่ทันที"
+              title="กดเพื่อดูสรุปยอดของวันนี้ และเลือกว่าจะไปวันถัดไปเลยไหม"
               className="flex-1 py-2 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-colors text-center cursor-pointer shadow-xs flex items-center justify-center gap-1.5 group"
             >
-              <span className="group-hover:translate-x-0.5 transition-transform inline-block">⏩</span>
-              <span>ผ่านไป 1 วัน (เปลี่ยนเมนูใหม่)</span>
+              <span className="group-hover:translate-x-0.5 transition-transform inline-block">🌙</span>
+              <span>จบวันนี้ & ไปวันถัดไป</span>
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.03 }}

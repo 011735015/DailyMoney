@@ -22,6 +22,7 @@ import { BudgetSettingsModal } from './components/BudgetSettingsModal';
 import { OverBudgetModal } from './components/OverBudgetModal';
 import { EmergencyAlertBanner } from './components/EmergencyAlertBanner';
 import { AuthModal } from './components/AuthModal';
+import { DayEndModal } from './components/DayEndModal';
 import { getCurrentUser, setCurrentUser as persistCurrentUser } from './utils/authStorage';
 import { ShieldAlert, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -40,6 +41,7 @@ export default function App() {
   const [isEmergencyModalOpen, setIsEmergencyModalOpen] = useState(false);
   const [isStartNewPlanModalOpen, setIsStartNewPlanModalOpen] = useState(false);
   const [isOverBudgetModalOpen, setIsOverBudgetModalOpen] = useState(false);
+  const [isDayEndModalOpen, setIsDayEndModalOpen] = useState(false);
   const [lastExpenseRecorded, setLastExpenseRecorded] = useState<Expense | undefined>(undefined);
 
   // Authentication State
@@ -232,6 +234,17 @@ export default function App() {
       showToast(`🚨 เตือนด่วน: คุณใช้เงินเกินงบแล้ว! (ติดลบ ฿${nextStatus.overBudgetAmount.toLocaleString()})`);
     } else {
       showToast(`✓ บันทึก ${name} (-฿${price}) เรียบร้อยแล้ว`);
+    }
+
+    // Check if this meal completes all 3 meals for current day -> Auto open End of Day popup
+    const currentMeals = config.loggedMealsByDay?.[day] || {};
+    const willHaveBreakfast = mealType === 'breakfast' || currentMeals.breakfast;
+    const willHaveLunch = mealType === 'lunch' || currentMeals.lunch;
+    const willHaveDinner = mealType === 'dinner' || currentMeals.dinner;
+    if (willHaveBreakfast && willHaveLunch && willHaveDinner) {
+      setTimeout(() => {
+        setIsDayEndModalOpen(true);
+      }, 750);
     }
   };
 
@@ -466,7 +479,7 @@ export default function App() {
                 onOpenMenuTab={() => setActiveTab('menu')}
                 onOpenExpensesTab={() => setActiveTab('expenses')}
                 onDeleteExpense={handleDeleteExpense}
-                onNextDay={handleNextDay}
+                onNextDay={() => setIsDayEndModalOpen(true)}
                 onCompletePlan={handleCompletePlan}
                 onOpenNewPlanModal={() => setIsStartNewPlanModalOpen(true)}
                 onLogMeal={handleLogMeal}
@@ -582,6 +595,19 @@ export default function App() {
         onClose={() => setIsAuthModalOpen(false)}
         onAuthSuccess={handleAuthSuccess}
         initialMode={authModalMode}
+      />
+
+      <DayEndModal
+        isOpen={isDayEndModalOpen}
+        onClose={() => setIsDayEndModalOpen(false)}
+        config={config}
+        status={status}
+        expenses={expenses}
+        onConfirmNextDay={handleNextDay}
+        onCompletePlan={() => {
+          setIsDayEndModalOpen(false);
+          handleCompletePlan();
+        }}
       />
     </div>
   );

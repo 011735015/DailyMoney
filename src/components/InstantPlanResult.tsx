@@ -125,20 +125,24 @@ export const InstantPlanResult: React.FC<InstantPlanResultProps> = ({
             </div>
 
             <div className="flex items-center gap-2">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.96 }}
                 onClick={onNextDay}
-                title="ขยับไปวันถัดไป เมนูจะเปลี่ยนเป็นเมนูใหม่ทันที"
+                title="กดเพื่อดูสรุปยอดของวันนี้ และเลือกว่าจะไปวันถัดไปเลยไหม"
                 className="flex-1 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer text-center shadow-xs flex items-center justify-center gap-1.5"
               >
-                <span>⏩ ผ่านไปวันถัดไป (เปลี่ยนเมนู)</span>
-              </button>
-              <button
+                <span>🌙 จบวันนี้ & ไปวันถัดไป</span>
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.96 }}
                 onClick={onCompletePlan}
                 title="จบรอบการใช้งานเพื่อดูสรุป"
                 className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-semibold transition-colors cursor-pointer shadow-2xs whitespace-nowrap"
               >
                 🏁 จบรอบ
-              </button>
+              </motion.button>
             </div>
           </div>
         </div>
@@ -207,6 +211,38 @@ export const InstantPlanResult: React.FC<InstantPlanResultProps> = ({
               )}
             </div>
           </div>
+
+          {/* Banner when all 3 meals are completed */}
+          <AnimatePresence>
+            {completedMealsCount === 3 && (
+              <motion.div
+                initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                className="mb-3.5 p-3.5 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-300 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs shadow-xs"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="text-2xl shrink-0">🌙</span>
+                  <div>
+                    <strong className="text-emerald-950 font-bold block text-sm">
+                      ยินดีด้วย! ทานอาหารครบ 3 มื้อของวันนี้แล้ว
+                    </strong>
+                    <span className="text-emerald-700">
+                      จบวันแล้ววันนี้ กดเพื่อดูสรุปยอดเงินและเลือกว่าจะไปวันถัดไปได้เลย
+                    </span>
+                  </div>
+                </div>
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={onNextDay}
+                  className="shrink-0 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                >
+                  <span>🌙 สรุปจบวัน & ไปวันถัดไป</span>
+                </motion.button>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {/* Breakfast */}
