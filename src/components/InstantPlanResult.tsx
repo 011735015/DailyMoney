@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   RotateCcw,
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { GeneratedPlan } from '../utils/planGenerator';
 import { BudgetStatus, BudgetConfig } from '../types';
 
@@ -209,8 +210,11 @@ export const InstantPlanResult: React.FC<InstantPlanResultProps> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {/* Breakfast */}
-            <div
-              className={`border rounded-2xl p-4 flex flex-col justify-between transition-all ${
+            <motion.div
+              layout
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`border rounded-2xl p-4 flex flex-col justify-between transition-colors ${
                 isBreakfastDone
                   ? 'bg-emerald-50/50 border-emerald-300 shadow-xs'
                   : 'bg-white border-slate-200 shadow-2xs hover:border-emerald-300'
@@ -239,21 +243,30 @@ export const InstantPlanResult: React.FC<InstantPlanResultProps> = ({
 
               {isBreakfastDone ? (
                 <div className="mt-3 flex items-center gap-1.5">
-                  <div className="flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 bg-emerald-600 text-white shadow-2xs">
+                  <motion.div
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 bg-emerald-600 text-white shadow-2xs"
+                  >
                     <Check className="w-3.5 h-3.5" />
                     <span>ทานแล้ววันนี้ (+฿{plan.meals.breakfast.estimatedPrice})</span>
-                  </div>
-                  <button
+                  </motion.div>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.9, rotate: -180 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 20 }}
                     onClick={() => onUndoMeal('breakfast')}
                     title={`กดยกเลิกและคืนเงิน ฿${plan.meals.breakfast.estimatedPrice} กลับเข้ากระเป๋าทันที`}
-                    className="py-2 px-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-xl transition-all cursor-pointer text-xs font-bold flex items-center gap-1 shrink-0 active:scale-95 shadow-2xs"
+                    className="py-2 px-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-xl transition-colors cursor-pointer text-xs font-bold flex items-center gap-1 shrink-0 shadow-2xs"
                   >
                     <RotateCcw className="w-3 h-3" />
                     <span>รี (คืนเงิน ฿{plan.meals.breakfast.estimatedPrice})</span>
-                  </button>
+                  </motion.button>
                 </div>
               ) : (
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() =>
                     onLogMeal(
                       plan.meals.breakfast.name,
@@ -261,17 +274,21 @@ export const InstantPlanResult: React.FC<InstantPlanResultProps> = ({
                       'breakfast'
                     )
                   }
-                  className="mt-3 w-full py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs active:scale-95 transition-all cursor-pointer"
+                  className="mt-3 w-full py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs transition-colors cursor-pointer"
                 >
                   <PlusCircle className="w-3.5 h-3.5" />
                   <span>ทานมื้อนี้ (+฿{plan.meals.breakfast.estimatedPrice})</span>
-                </button>
+                </motion.button>
               )}
-            </div>
+            </motion.div>
 
             {/* Lunch */}
-            <div
-              className={`border rounded-2xl p-4 flex flex-col justify-between transition-all ${
+            <motion.div
+              layout
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 }}
+              className={`border rounded-2xl p-4 flex flex-col justify-between transition-colors ${
                 isLunchDone
                   ? 'bg-emerald-50/50 border-emerald-300 shadow-xs'
                   : 'bg-white border-slate-200 shadow-2xs hover:border-emerald-300'
@@ -300,21 +317,30 @@ export const InstantPlanResult: React.FC<InstantPlanResultProps> = ({
 
               {isLunchDone ? (
                 <div className="mt-3 flex items-center gap-1.5">
-                  <div className="flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 bg-emerald-600 text-white shadow-2xs">
+                  <motion.div
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 bg-emerald-600 text-white shadow-2xs"
+                  >
                     <Check className="w-3.5 h-3.5" />
                     <span>ทานแล้ววันนี้ (+฿{plan.meals.lunch.estimatedPrice})</span>
-                  </div>
-                  <button
+                  </motion.div>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.9, rotate: -180 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 20 }}
                     onClick={() => onUndoMeal('lunch')}
                     title={`กดยกเลิกและคืนเงิน ฿${plan.meals.lunch.estimatedPrice} กลับเข้ากระเป๋าทันที`}
-                    className="py-2 px-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-xl transition-all cursor-pointer text-xs font-bold flex items-center gap-1 shrink-0 active:scale-95 shadow-2xs"
+                    className="py-2 px-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-xl transition-colors cursor-pointer text-xs font-bold flex items-center gap-1 shrink-0 shadow-2xs"
                   >
                     <RotateCcw className="w-3 h-3" />
                     <span>รี (คืนเงิน ฿{plan.meals.lunch.estimatedPrice})</span>
-                  </button>
+                  </motion.button>
                 </div>
               ) : (
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() =>
                     onLogMeal(
                       plan.meals.lunch.name,
@@ -322,17 +348,21 @@ export const InstantPlanResult: React.FC<InstantPlanResultProps> = ({
                       'lunch'
                     )
                   }
-                  className="mt-3 w-full py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs active:scale-95 transition-all cursor-pointer"
+                  className="mt-3 w-full py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs transition-colors cursor-pointer"
                 >
                   <PlusCircle className="w-3.5 h-3.5" />
                   <span>ทานมื้อนี้ (+฿{plan.meals.lunch.estimatedPrice})</span>
-                </button>
+                </motion.button>
               )}
-            </div>
+            </motion.div>
 
             {/* Dinner */}
-            <div
-              className={`border rounded-2xl p-4 flex flex-col justify-between transition-all ${
+            <motion.div
+              layout
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className={`border rounded-2xl p-4 flex flex-col justify-between transition-colors ${
                 isDinnerDone
                   ? 'bg-emerald-50/50 border-emerald-300 shadow-xs'
                   : 'bg-white border-slate-200 shadow-2xs hover:border-emerald-300'
@@ -361,21 +391,30 @@ export const InstantPlanResult: React.FC<InstantPlanResultProps> = ({
 
               {isDinnerDone ? (
                 <div className="mt-3 flex items-center gap-1.5">
-                  <div className="flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 bg-emerald-600 text-white shadow-2xs">
+                  <motion.div
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 bg-emerald-600 text-white shadow-2xs"
+                  >
                     <Check className="w-3.5 h-3.5" />
                     <span>ทานแล้ววันนี้ (+฿{plan.meals.dinner.estimatedPrice})</span>
-                  </div>
-                  <button
+                  </motion.div>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.9, rotate: -180 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 20 }}
                     onClick={() => onUndoMeal('dinner')}
                     title={`กดยกเลิกและคืนเงิน ฿${plan.meals.dinner.estimatedPrice} กลับเข้ากระเป๋าทันที`}
-                    className="py-2 px-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-xl transition-all cursor-pointer text-xs font-bold flex items-center gap-1 shrink-0 active:scale-95 shadow-2xs"
+                    className="py-2 px-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-xl transition-colors cursor-pointer text-xs font-bold flex items-center gap-1 shrink-0 shadow-2xs"
                   >
                     <RotateCcw className="w-3 h-3" />
                     <span>รี (คืนเงิน ฿{plan.meals.dinner.estimatedPrice})</span>
-                  </button>
+                  </motion.button>
                 </div>
               ) : (
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() =>
                     onLogMeal(
                       plan.meals.dinner.name,
@@ -383,13 +422,13 @@ export const InstantPlanResult: React.FC<InstantPlanResultProps> = ({
                       'dinner'
                     )
                   }
-                  className="mt-3 w-full py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs active:scale-95 transition-all cursor-pointer"
+                  className="mt-3 w-full py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs transition-colors cursor-pointer"
                 >
                   <PlusCircle className="w-3.5 h-3.5" />
                   <span>ทานมื้อนี้ (+฿{plan.meals.dinner.estimatedPrice})</span>
-                </button>
+                </motion.button>
               )}
-            </div>
+            </motion.div>
           </div>
 
           {/* Explicit Helper Note for Refund and Rotation */}

@@ -9,6 +9,7 @@ import {
   Check,
   Search,
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { MealRecommendation, BudgetStatus } from '../types';
 import { THAI_MEAL_DATABASE, LIVING_COST_GUIDE } from '../data/thaiMeals';
 
@@ -88,7 +89,8 @@ export const DailyMenuPlanner: React.FC<DailyMenuPlannerProps> = ({
 
           {/* Tier Segmented Control */}
           <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl">
-            <button
+            <motion.button
+              whileTap={{ scale: 0.95 }}
               onClick={() => setSelectedTier('survival')}
               className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer ${
                 selectedTier === 'survival'
@@ -97,8 +99,9 @@ export const DailyMenuPlanner: React.FC<DailyMenuPlannerProps> = ({
               }`}
             >
               ประหยัดสุดขีด (≤฿35/มื้อ)
-            </button>
-            <button
+            </motion.button>
+            <motion.button
+              whileTap={{ scale: 0.95 }}
               onClick={() => setSelectedTier('standard')}
               className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer ${
                 selectedTier === 'standard'
@@ -107,8 +110,9 @@ export const DailyMenuPlanner: React.FC<DailyMenuPlannerProps> = ({
               }`}
             >
               มาตรฐานทั่วไป (~฿55/มื้อ)
-            </button>
-            <button
+            </motion.button>
+            <motion.button
+              whileTap={{ scale: 0.95 }}
               onClick={() => setSelectedTier('comfort')}
               className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer ${
                 selectedTier === 'comfort'
@@ -117,7 +121,7 @@ export const DailyMenuPlanner: React.FC<DailyMenuPlannerProps> = ({
               }`}
             >
               สบายใจจัดเต็ม (฿100+/มื้อ)
-            </button>
+            </motion.button>
           </div>
         </div>
 
@@ -127,17 +131,18 @@ export const DailyMenuPlanner: React.FC<DailyMenuPlannerProps> = ({
             <span className="text-xs text-slate-400 font-medium">มื้ออาหาร:</span>
             <div className="flex items-center gap-1">
               {(['all', 'เช้า', 'กลางวัน', 'เย็น'] as const).map((time) => (
-                <button
+                <motion.button
                   key={time}
+                  whileTap={{ scale: 0.92 }}
                   onClick={() => setSelectedMealTime(time)}
                   className={`px-2.5 py-1 text-xs rounded-md transition-colors cursor-pointer ${
                     selectedMealTime === time
-                      ? 'bg-slate-900 text-white font-medium'
+                      ? 'bg-slate-900 text-white font-medium shadow-xs'
                       : 'text-slate-600 hover:bg-slate-100'
                   }`}
                 >
                   {time === 'all' ? 'ทุกมื้อ' : `มื้อ${time}`}
-                </button>
+                </motion.button>
               ))}
             </div>
           </div>
@@ -176,13 +181,16 @@ export const DailyMenuPlanner: React.FC<DailyMenuPlannerProps> = ({
               </strong>
             </span>
             <span>·</span>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ rotate: 180, scale: 0.9 }}
+              transition={{ type: 'spring', stiffness: 350, damping: 20 }}
               onClick={() => setShuffleKey((k) => k + 1)}
               className="flex items-center gap-1 text-emerald-700 hover:text-emerald-800 font-medium cursor-pointer"
             >
               <RefreshCw className="w-3 h-3" />
               <span>สลับเมนู</span>
-            </button>
+            </motion.button>
           </div>
         </div>
       </div>
@@ -192,9 +200,11 @@ export const DailyMenuPlanner: React.FC<DailyMenuPlannerProps> = ({
         {filteredMeals.map((meal) => {
           const isAdded = addedMealId === meal.id;
           return (
-            <div
+            <motion.div
               key={meal.id}
-              className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all"
+              whileHover={{ y: -3 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+              className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between hover:border-emerald-300 hover:shadow-sm transition-colors"
             >
               <div>
                 <div className="flex items-center justify-between gap-2 mb-2">
@@ -230,13 +240,15 @@ export const DailyMenuPlanner: React.FC<DailyMenuPlannerProps> = ({
               {/* 1-Click Quick Log Button */}
               <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
                 <span className="text-[11px] text-slate-400">ทานเมนูนี้วันนี้?</span>
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.94 }}
                   onClick={() => handleQuickAdd(meal)}
                   disabled={isAdded}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     isAdded
                       ? 'bg-emerald-100 text-emerald-800'
-                      : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs active:scale-95'
+                      : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs'
                   }`}
                 >
                   {isAdded ? (
@@ -250,9 +262,9 @@ export const DailyMenuPlanner: React.FC<DailyMenuPlannerProps> = ({
                       <span>บันทึกลงรายจ่าย</span>
                     </>
                   )}
-                </button>
+                </motion.button>
               </div>
-            </div>
+            </motion.div>
           );
         })}
       </div>

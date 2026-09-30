@@ -70,3 +70,11 @@ export interface BudgetStatus {
   isWarning: boolean; // เงินเริ่มตึง (15% - 30%)
   healthScore: 'healthy' | 'warning' | 'critical';
 }
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  joinedAt: number;
+}

@@ -8,7 +8,7 @@ import {
   DEFAULT_BUDGET_CONFIG,
   INITIAL_SAMPLE_EXPENSES,
 } from './utils/storage';
-import { BudgetConfig, Expense, ExpenseCategory } from './types';
+import { BudgetConfig, Expense, ExpenseCategory, UserProfile } from './types';
 import { Navbar } from './components/Navbar';
 import { HomeOverview } from './components/HomeOverview';
 import { PlanCompletedView } from './components/PlanCompletedView';
@@ -21,7 +21,10 @@ import { ExpenseFormModal } from './components/ExpenseFormModal';
 import { BudgetSettingsModal } from './components/BudgetSettingsModal';
 import { OverBudgetModal } from './components/OverBudgetModal';
 import { EmergencyAlertBanner } from './components/EmergencyAlertBanner';
-import { ShieldAlert } from 'lucide-react';
+import { AuthModal } from './components/AuthModal';
+import { getCurrentUser, setCurrentUser as persistCurrentUser } from './utils/authStorage';
+import { ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
   const [config, setConfig] = useState<BudgetConfig>(getStoredBudgetConfig);
@@ -38,6 +41,27 @@ export default function App() {
   const [isStartNewPlanModalOpen, setIsStartNewPlanModalOpen] = useState(false);
   const [isOverBudgetModalOpen, setIsOverBudgetModalOpen] = useState(false);
   const [lastExpenseRecorded, setLastExpenseRecorded] = useState<Expense | undefined>(undefined);
+
+  // Authentication State
+  const [currentUser, setCurrentUserState] = useState<UserProfile | null>(getCurrentUser);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'register' | 'forgot'>('login');
+
+  const handleOpenAuth = (mode: 'login' | 'register' | 'forgot' = 'login') => {
+    setAuthModalMode(mode);
+    setIsAuthModalOpen(true);
+  };
+
+  const handleAuthSuccess = (user: UserProfile, message: string) => {
+    setCurrentUserState(user);
+    showToast(message);
+  };
+
+  const handleLogout = () => {
+    persistCurrentUser(null);
+    setCurrentUserState(null);
+    showToast('✓ ออกจากระบบเรียบร้อยแล้ว');
+  };
 
   // Pre-fill state for meal logging
   const [mealPreFill, setMealPreFill] = useState<{
@@ -350,20 +374,39 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col selection:bg-emerald-100 selection:text-emerald-900 pb-20 md:pb-12">
       {/* Toast Notification Alert (Money refund & actions) */}
-      {toastMessage && (
-        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 animate-bounce duration-300 pointer-events-auto">
-          <div className="bg-slate-900 text-white px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs sm:text-sm font-semibold border border-slate-700">
-            <span className="text-emerald-400 text-base">💰</span>
-            <span>{toastMessage}</span>
-            <button
-              onClick={() => setToastMessage(null)}
-              className="text-slate-400 hover:text-white ml-2 text-xs cursor-pointer"
-            >
-              ✕
-            </button>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -24, scale: 0.92 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -16, scale: 0.95 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+            className="fixed top-5 left-1/2 -translate-x-1/2 z-50 pointer-events-auto max-w-md w-[92vw] sm:w-auto"
+          >
+            <div className="relative overflow-hidden bg-slate-900 text-white px-4 py-2.5 rounded-2xl shadow-xl flex items-center justify-between gap-3 text-xs sm:text-sm font-semibold border border-slate-700/80">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="text-emerald-400 text-base shrink-0">💰</span>
+                <span className="truncate">{toastMessage}</span>
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.2 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setToastMessage(null)}
+                className="text-slate-400 hover:text-white ml-2 text-xs cursor-pointer shrink-0 p-1"
+              >
+                ✕
+              </motion.button>
+              {/* Progress Line */}
+              <motion.div
+                initial={{ width: '100%' }}
+                animate={{ width: '0%' }}
+                transition={{ duration: 3.5, ease: 'linear' }}
+                className="absolute bottom-0 left-0 h-0.5 bg-emerald-500"
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Top Bar following Top Bar Contract */}
       <Navbar
@@ -377,6 +420,9 @@ export default function App() {
         onOpenEmergency={() => setIsEmergencyModalOpen(true)}
         onOpenNewPlan={() => setIsStartNewPlanModalOpen(true)}
         isCritical={status.isCritical && !config.isCompleted}
+        currentUser={currentUser}
+        onOpenAuth={handleOpenAuth}
+        onLogout={handleLogout}
       />
 
       {/* Main Content Area */}
@@ -463,7 +509,12 @@ export default function App() {
       {/* Floating Emergency / Over-Budget Button */}
       {(status.isCritical || status.isOverBudget) && !config.isCompleted && (
         <div className="fixed bottom-16 sm:bottom-6 right-4 sm:right-6 z-40">
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.94 }}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
             onClick={() => {
               if (status.isOverBudget) {
                 setIsOverBudgetModalOpen(true);
@@ -471,7 +522,7 @@ export default function App() {
                 setIsEmergencyModalOpen(true);
               }
             }}
-            className="flex items-center gap-2 px-4 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-full shadow-lg shadow-rose-600/30 font-bold text-xs sm:text-sm animate-pulse ring-4 ring-rose-300 ring-offset-2 transition-all active:scale-95 cursor-pointer"
+            className="flex items-center gap-2 px-4 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-full shadow-lg shadow-rose-600/30 font-bold text-xs sm:text-sm animate-pulse ring-4 ring-rose-300 ring-offset-2 transition-colors cursor-pointer"
           >
             <ShieldAlert className="w-5 h-5 text-white" />
             <span>
@@ -479,7 +530,7 @@ export default function App() {
                 ? `🚨 เงินติดลบ -฿${status.overBudgetAmount.toLocaleString()} (กดดูวิธีแก้)`
                 : 'คำแนะนำประหยัดฉุกเฉิน (เงินใกล้หมด!)'}
             </span>
-          </button>
+          </motion.button>
         </div>
       )}
 
@@ -524,6 +575,13 @@ export default function App() {
         onClose={() => setIsEmergencyModalOpen(false)}
         status={status}
         onApplySurvivalPlan={() => setActiveTab('menu')}
+      />
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onAuthSuccess={handleAuthSuccess}
+        initialMode={authModalMode}
       />
     </div>
   );

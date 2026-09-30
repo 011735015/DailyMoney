@@ -3,11 +3,15 @@ import {
   Wallet,
   Calendar,
   AlertOctagon,
+  ArrowRight,
+  TrendingUp,
 } from 'lucide-react';
+import { motion } from 'motion/react';
 import { BudgetConfig, BudgetStatus, Expense, ExpenseCategory } from '../types';
 import { QuickBudgetCalculator } from './QuickBudgetCalculator';
 import { QuickExpenseBar } from './QuickExpenseBar';
 import { InstantPlanResult } from './InstantPlanResult';
+import { AnimatedNumber } from './AnimatedNumber';
 import { AnalyticsCharts } from './AnalyticsCharts';
 import { generateRecommendationPlan } from '../utils/planGenerator';
 
@@ -93,8 +97,11 @@ export const HomeOverview: React.FC<HomeOverviewProps> = ({
       {/* 3. Hero Status Display (Remaining Money & Days in this round) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Total Remaining Money */}
-        <div
-          className={`rounded-2xl border p-6 flex flex-col justify-between shadow-xs transition-all ${
+        <motion.div
+          layout
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`rounded-2xl border p-6 flex flex-col justify-between shadow-xs transition-colors ${
             status.isOverBudget
               ? 'bg-rose-50/70 border-rose-300 ring-1 ring-rose-300'
               : 'bg-white border-slate-200'
@@ -108,26 +115,30 @@ export const HomeOverview: React.FC<HomeOverviewProps> = ({
                 {status.isOverBudget ? '⚠️ เงินติดลบ (ใช้เกินงบ)' : 'เงินคงเหลือในรอบนี้'}
               </span>
               {status.isOverBudget ? (
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={onOpenOverBudgetModal}
-                  className="flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-200/80 px-2 py-0.5 rounded-full cursor-pointer hover:bg-rose-300"
+                  className="flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-200/80 px-2 py-0.5 rounded-full cursor-pointer hover:bg-rose-300 transition-colors"
                 >
                   <AlertOctagon className="w-3 h-3 text-rose-700 animate-pulse" />
                   <span>ดูรายละเอียด</span>
-                </button>
+                </motion.button>
               ) : (
-                <Wallet className="w-4 h-4 text-emerald-600" />
+                <motion.div whileHover={{ scale: 1.2, rotate: 12 }} transition={{ type: 'spring', stiffness: 400 }}>
+                  <Wallet className="w-4 h-4 text-emerald-600" />
+                </motion.div>
               )}
             </div>
 
             <div className="mt-3 flex items-baseline gap-2">
               {status.isOverBudget ? (
                 <span className="text-3xl sm:text-4xl font-black tracking-tight font-mono tabular-nums text-rose-600">
-                  -฿{status.overBudgetAmount.toLocaleString()}
+                  -฿<AnimatedNumber value={status.overBudgetAmount} />
                 </span>
               ) : (
                 <span className="text-3xl sm:text-4xl font-extrabold tracking-tight font-mono tabular-nums text-slate-900">
-                  ฿{status.remainingBudget.toLocaleString()}
+                  ฿<AnimatedNumber value={status.remainingBudget} />
                 </span>
               )}
               <span className={`text-xs ${status.isOverBudget ? 'text-rose-600 font-semibold' : 'text-slate-400'}`}>
@@ -136,9 +147,13 @@ export const HomeOverview: React.FC<HomeOverviewProps> = ({
             </div>
 
             {status.isOverBudget && (
-              <p className="text-[11px] text-rose-700 mt-1">
+              <motion.p
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="text-[11px] text-rose-700 mt-1"
+              >
                 ใช้จ่ายเกินงบไปแล้ว ฿{status.overBudgetAmount.toLocaleString()} บาท จากยอดตั้งต้น
-              </p>
+              </motion.p>
             )}
           </div>
 
@@ -148,12 +163,15 @@ export const HomeOverview: React.FC<HomeOverviewProps> = ({
                 ใช้ไปแล้ว {status.burnRatePercentage}%
               </span>
               <span className={`font-mono ${status.isOverBudget ? 'text-rose-700 font-bold' : ''}`}>
-                ฿{status.totalSpent.toLocaleString()}
+                ฿<AnimatedNumber value={status.totalSpent} />
               </span>
             </div>
             <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.min(100, status.burnRatePercentage)}%` }}
+                transition={{ type: 'spring', stiffness: 50, damping: 14 }}
+                className={`h-full rounded-full transition-colors duration-500 ${
                   status.isOverBudget
                     ? 'bg-rose-600'
                     : status.burnRatePercentage > 85
@@ -162,26 +180,38 @@ export const HomeOverview: React.FC<HomeOverviewProps> = ({
                     ? 'bg-amber-500'
                     : 'bg-emerald-500'
                 }`}
-                style={{ width: `${Math.min(100, status.burnRatePercentage)}%` }}
               />
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Days Progress in this round */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col justify-between shadow-xs">
+        <motion.div
+          layout
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col justify-between shadow-xs"
+        >
           <div>
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                 ความคืบหน้าของรอบนี้
               </span>
-              <Calendar className="w-4 h-4 text-blue-600" />
+              <motion.div whileHover={{ scale: 1.2, rotate: -12 }} transition={{ type: 'spring', stiffness: 400 }}>
+                <Calendar className="w-4 h-4 text-blue-600" />
+              </motion.div>
             </div>
 
             <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-3xl sm:text-4xl font-extrabold tracking-tight font-mono tabular-nums text-slate-900">
+              <motion.span
+                key={config.currentDay}
+                initial={{ scale: 0.85, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                className="text-3xl sm:text-4xl font-extrabold tracking-tight font-mono tabular-nums text-slate-900 inline-block"
+              >
                 วันที่ {config.currentDay || 1}
-              </span>
+              </motion.span>
               <span className="text-xs text-slate-500 font-medium">
                 / ทั้งหมด {config.totalDays} วัน (เหลืออีก {status.daysRemaining} วัน)
               </span>
@@ -189,22 +219,27 @@ export const HomeOverview: React.FC<HomeOverviewProps> = ({
           </div>
 
           <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.96 }}
               onClick={onNextDay}
               title="ขยับไปวันถัดไป เมนูอาหารจะเปลี่ยนเป็นเมนูใหม่ทันที"
-              className="flex-1 py-2 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-colors text-center cursor-pointer shadow-xs"
+              className="flex-1 py-2 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-colors text-center cursor-pointer shadow-xs flex items-center justify-center gap-1.5 group"
             >
-              ⏩ ผ่านไป 1 วัน (เปลี่ยนเมนูใหม่)
-            </button>
-            <button
+              <span className="group-hover:translate-x-0.5 transition-transform inline-block">⏩</span>
+              <span>ผ่านไป 1 วัน (เปลี่ยนเมนูใหม่)</span>
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.95 }}
               onClick={onCompletePlan}
               title="กดเพื่อดูสรุปเสร็จสิ้นรอบนี้"
               className="py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
             >
               🏁 จบรอบนี้
-            </button>
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* 4. Instant 1-Click Quick Expense Logger */}
